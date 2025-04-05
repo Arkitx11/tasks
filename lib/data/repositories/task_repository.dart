@@ -26,6 +26,6 @@ class TaskRepository {
   }
 
   Future<void> deleteTask(Task task) {
-    return _localDataService.deleteTask(task.id);
+    return _localDataService.deleteTask(task.id!);
   }
 }

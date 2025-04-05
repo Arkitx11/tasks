@@ -13,17 +13,16 @@ class TaskMapper {
       title: task.title,
       isFavoruite: task.isFavourite,
       isComplete: task.isComplete,
-      dueDate: task.dueDate,
+      dateTime: task.dueDate,
       description: task.description,
     );
   }
 
   static data.TasksCompanion toDataTaskCompanionModel(domain.Task task) {
     return data.TasksCompanion(
-      id: Value(task.id),
       title: Value(task.title),
-      description: Value(task.description),
-      dueDate: (task.dueDate != null) ? Value(task.dueDate!) : Value.absent(),
+      description: (task.description != null) ? Value(task.description!) : Value.absent(),
+      dueDate: (task.dateTime != null) ? Value(task.dateTime!) : Value.absent(),
       isComplete: Value(task.isComplete),
       isFavourite: Value(task.isFavoruite),
     );
@@ -32,9 +31,9 @@ class TaskMapper {
   /// TODO: This will cause a fucking rukus due to the due data, fucking shit
   static data.Task toDataTaskModel(domain.Task task) {
     return data.Task(
-      id: task.id,
+      id: task.id!,
       title: task.title,
-      dueDate: task.dueDate!,
+      dueDate: task.dateTime!,
       description: task.description,
       isFavourite: task.isFavoruite,
       isComplete: task.isComplete,

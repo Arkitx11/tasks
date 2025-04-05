@@ -74,9 +74,9 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   late final GeneratedColumn<DateTime> dueDate = GeneratedColumn<DateTime>(
     'due_date',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -139,8 +139,6 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         _dueDateMeta,
         dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
       );
-    } else if (isInserting) {
-      context.missing(_dueDateMeta);
     }
     return context;
   }
@@ -175,11 +173,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
             DriftSqlType.int,
             data['${effectivePrefix}is_favourite'],
           )!,
-      dueDate:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}due_date'],
-          )!,
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_date'],
+      ),
     );
   }
 
@@ -195,14 +192,14 @@ class Task extends DataClass implements Insertable<Task> {
   final String? description;
   final int isComplete;
   final int isFavourite;
-  final DateTime dueDate;
+  final DateTime? dueDate;
   const Task({
     required this.id,
     required this.title,
     this.description,
     required this.isComplete,
     required this.isFavourite,
-    required this.dueDate,
+    this.dueDate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -214,7 +211,9 @@ class Task extends DataClass implements Insertable<Task> {
     }
     map['is_complete'] = Variable<int>(isComplete);
     map['is_favourite'] = Variable<int>(isFavourite);
-    map['due_date'] = Variable<DateTime>(dueDate);
+    if (!nullToAbsent || dueDate != null) {
+      map['due_date'] = Variable<DateTime>(dueDate);
+    }
     return map;
   }
 
@@ -228,7 +227,10 @@ class Task extends DataClass implements Insertable<Task> {
               : Value(description),
       isComplete: Value(isComplete),
       isFavourite: Value(isFavourite),
-      dueDate: Value(dueDate),
+      dueDate:
+          dueDate == null && nullToAbsent
+              ? const Value.absent()
+              : Value(dueDate),
     );
   }
 
@@ -243,7 +245,7 @@ class Task extends DataClass implements Insertable<Task> {
       description: serializer.fromJson<String?>(json['description']),
       isComplete: serializer.fromJson<int>(json['isComplete']),
       isFavourite: serializer.fromJson<int>(json['isFavourite']),
-      dueDate: serializer.fromJson<DateTime>(json['dueDate']),
+      dueDate: serializer.fromJson<DateTime?>(json['dueDate']),
     );
   }
   @override
@@ -255,7 +257,7 @@ class Task extends DataClass implements Insertable<Task> {
       'description': serializer.toJson<String?>(description),
       'isComplete': serializer.toJson<int>(isComplete),
       'isFavourite': serializer.toJson<int>(isFavourite),
-      'dueDate': serializer.toJson<DateTime>(dueDate),
+      'dueDate': serializer.toJson<DateTime?>(dueDate),
     };
   }
 
@@ -265,14 +267,14 @@ class Task extends DataClass implements Insertable<Task> {
     Value<String?> description = const Value.absent(),
     int? isComplete,
     int? isFavourite,
-    DateTime? dueDate,
+    Value<DateTime?> dueDate = const Value.absent(),
   }) => Task(
     id: id ?? this.id,
     title: title ?? this.title,
     description: description.present ? description.value : this.description,
     isComplete: isComplete ?? this.isComplete,
     isFavourite: isFavourite ?? this.isFavourite,
-    dueDate: dueDate ?? this.dueDate,
+    dueDate: dueDate.present ? dueDate.value : this.dueDate,
   );
   Task copyWithCompanion(TasksCompanion data) {
     return Task(
@@ -322,7 +324,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String?> description;
   final Value<int> isComplete;
   final Value<int> isFavourite;
-  final Value<DateTime> dueDate;
+  final Value<DateTime?> dueDate;
   const TasksCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -337,9 +339,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.description = const Value.absent(),
     this.isComplete = const Value.absent(),
     this.isFavourite = const Value.absent(),
-    required DateTime dueDate,
-  }) : title = Value(title),
-       dueDate = Value(dueDate);
+    this.dueDate = const Value.absent(),
+  }) : title = Value(title);
   static Insertable<Task> custom({
     Expression<int>? id,
     Expression<String>? title,
@@ -364,7 +365,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String?>? description,
     Value<int>? isComplete,
     Value<int>? isFavourite,
-    Value<DateTime>? dueDate,
+    Value<DateTime?>? dueDate,
   }) {
     return TasksCompanion(
       id: id ?? this.id,
@@ -435,7 +436,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<String?> description,
       Value<int> isComplete,
       Value<int> isFavourite,
-      required DateTime dueDate,
+      Value<DateTime?> dueDate,
     });
 typedef $$TasksTableUpdateCompanionBuilder =
     TasksCompanion Function({
@@ -444,7 +445,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String?> description,
       Value<int> isComplete,
       Value<int> isFavourite,
-      Value<DateTime> dueDate,
+      Value<DateTime?> dueDate,
     });
 
 class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
@@ -593,7 +594,7 @@ class $$TasksTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<int> isComplete = const Value.absent(),
                 Value<int> isFavourite = const Value.absent(),
-                Value<DateTime> dueDate = const Value.absent(),
+                Value<DateTime?> dueDate = const Value.absent(),
               }) => TasksCompanion(
                 id: id,
                 title: title,
@@ -609,7 +610,7 @@ class $$TasksTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<int> isComplete = const Value.absent(),
                 Value<int> isFavourite = const Value.absent(),
-                required DateTime dueDate,
+                Value<DateTime?> dueDate = const Value.absent(),
               }) => TasksCompanion.insert(
                 id: id,
                 title: title,
