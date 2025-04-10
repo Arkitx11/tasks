@@ -7,13 +7,12 @@ part 'database.g.dart';
 
 @DriftDatabase(tables: [Tasks])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
+  AppDatabase(super.executor);
 
   @override
   int get schemaVersion => 1;
 
-
-  static QueryExecutor _openConnection() {
+  static QueryExecutor openStorageDatabase() {
     return driftDatabase(
       name: 'tasks_database',
       native: const DriftNativeOptions(
@@ -22,3 +21,4 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 }
+

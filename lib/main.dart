@@ -10,7 +10,7 @@ void main() {
   runApp(
      MultiProvider(
       providers: [
-        Provider(create: (_) => AppDatabase()),
+        Provider(create: (_) => AppDatabase(AppDatabase.openStorageDatabase())),
         Provider(create: (context) => DatabaseService(database: context.read())),
          Provider(create: (context) => TaskRepository(localDataService: context.read()),),
          Provider(create: (context) => TaskViewModel(taskRepository: context.read()))
