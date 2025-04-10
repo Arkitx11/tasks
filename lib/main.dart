@@ -1,23 +1,33 @@
-import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tasks/data/database/database.dart';
+import 'package:tasks/data/repositories/task_repository.dart';
+import 'package:tasks/data/services/database_service.dart';
+import 'package:tasks/ui/task_screen.dart';
+import 'package:tasks/ui/task_view_model.dart';
 
-import 'data/database/database.dart';
+void main() {
+  runApp(
+     MultiProvider(
+      providers: [
+        Provider(create: (_) => AppDatabase()),
+        Provider(create: (context) => DatabaseService(database: context.read())),
+         Provider(create: (context) => TaskRepository(localDataService: context.read()),),
+         Provider(create: (context) => TaskViewModel(taskRepository: context.read()))
+      ],
+      child: TaskApp(),
+    ),
+  );
+}
 
-void main() async {
+class TaskApp extends StatelessWidget {
+  const TaskApp({super.key});
 
-  WidgetsFlutterBinding.ensureInitialized();
-
-  final database = AppDatabase();
-
-  await database.into(database.tasks).insert(TasksCompanion.insert(
-    title: 'Wake me up at 5 Am',
-    dueDate: DateTime.now(),
-    description: Value('Getting ready for college'), // I don't know why I wrapped it inside Value
-
-
-
-  ));
-  List<Task> allItems = await database.select(database.tasks).get();
-
-  print('items in database: $allItems');
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      home: const TaskScreen(),
+    );
+  }
 }

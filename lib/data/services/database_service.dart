@@ -1,6 +1,6 @@
 import 'package:tasks/data/database/database.dart';
 
-// Apparently database.dart has TaskCompanion datatype which can be used to insert Element
+// Apparently database.dart has TaskCompanion datatype which can be used to insert Element and update Taskk
 class DatabaseService {
   final AppDatabase _database;
 
