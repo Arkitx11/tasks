@@ -1,0 +1,53 @@
+name: "Build & Release"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Android Build
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Clone the repository from master, our source of truth.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      # 2. Set up Flutter: this action installs and sets your Flutter environment.
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.7.2
+
+      # 3. Get project dependencies.
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. Intentionally skip tests for v0.1
+      - name: Skip tests
+        run: echo "Skipping tests for v0.1 - focusing on build pipeline only."
+
+      # 5. Build the APK.
+      - name: Build APK
+        run: flutter build apk
+
+      # 6. Build the App Bundle.
+      - name: Build App Bundle
+        run: flutter build appbundle
+
+      # 7. Upload the built APK as an artifact.
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      # 8. Upload the built App Bundle as an artifact.
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
